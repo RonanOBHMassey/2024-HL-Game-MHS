@@ -1,3 +1,6 @@
+import math
+
+
 # Checks users enter yes (y) and no (n)
 def yes_no(question):
     while True:
@@ -18,10 +21,10 @@ def instructions():
 **** INSTRUCTIONS ****
 
 To begin, Choose the number of rounds and either
-customize the game parameters or go with the default game
+customise the game parameters or go with the default game
 (where the secret number is between 1 - 100).
 
-Then choose the number of rounds you'd like to play,
+Then choose the amount of rounds you'd like to play,
 Press <enter> for Infinite mode.
 
 Your goal is to guess the secret number 
@@ -31,28 +34,55 @@ Good Luck, Player!
     ''')
 
 
-# Check that users have entered a valid option based on a list
-def int_check(question):
+# Check that users have entered a valid option
+def int_check(question, low=None, high=None, exit_code=None):
+
+    # if any integer is allowed...
+    if low is None and high is None:
+        error = "Please enter an integer"
+
+    # if the number needs to be higher than an integer
+    # (ie: rounds / high number)
+    elif low is not None and high is None:
+        error = f"Please enter an integer more than / equal to {low}"
+
+    # if the number needs to be between low and high
+    else:
+        error = f"Please enter an integer that is between {low} and {high} (inclusive)"
+
     while True:
-        error = "Please enter an integer more than 1 or with out a decimal point."
+        response = input(question).lower()
 
-        to_check = input(question)
-
-        # check for infinite mode
-        if to_check == "":
-            return "infinite"
+        # check for infinite mode / exit code
+        if response == exit_code:
+            return response
 
         try:
-            response = int(to_check)
+            response = int(response)
 
-            # checks that the number is more than / equal to 13
-            if response < 1:
+            # check if the integer not too low.
+            if low is not None and response < low:
                 print(error)
+
+            # check response is more than the low number
+            elif high is not None and response > high:
+                print(error)
+
+            # if response is valid, return it
             else:
                 return response
 
         except ValueError:
             print(error)
+
+
+# calculate the number of guesses allowed
+def calc_guesses(low, high):
+    num_amount = high - low + 1
+    max_raw = math.log2(num_amount)
+    max_upped = math.ceil(max_raw)
+    max_guesses = max_upped + 1
+    return max_guesses
 
 
 # Main routine starts here
@@ -72,11 +102,16 @@ if want_instructions == "yes" or want_instructions == "y":
     instructions()
 
 # Ask user for number of rounds
-num_rounds = int_check("How many rounds would you like? Press <enter> to play Infinite Mode: ")
+num_rounds = int_check("How many rounds would you like? Press <enter> to play Infinite Mode: ", low=1, exit_code="")
 
 if num_rounds == "infinite":
     mode = "infinite"
     num_rounds = 5
+
+# Get Game parameters
+low_num = int_check("Low Number? ")
+high_num = int_check("High Number? ", low=low_num+1)
+guesses_allowed = calc_guesses(low_num, high_num)
 
 # Game loop starts here
 while rounds_played < num_rounds:
